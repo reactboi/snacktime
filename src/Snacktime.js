@@ -3,7 +3,7 @@ import React from 'react';
 import check from './check.svg';
 
 import './Snacktime.css';
-import { fetchAndSplit } from './Fetcher';
+import { fetchAndSplit } from './helpers/fetch-and-split';
 
 // TODO: Vi trenger "Skip datoer" og muligens "ekstra datoer"
 class Snacktime extends React.Component {

@@ -3,7 +3,8 @@ import React from 'react';
 import Snacktime from './Snacktime';
 
 import './Snacktime.css';
-import { fetchAndSplit } from './Fetcher';
+import { fetchAndSplit } from './helpers/fetch-and-split';
+import { Snacktime3 } from './Snacktime3';
 
 class Snackholder extends React.Component {
     constructor(props) {
@@ -18,7 +19,7 @@ class Snackholder extends React.Component {
         const indexList = splitted.map(row => {
             return {
                 title: row[0],
-                startDate: new Date(row[1]),
+                startDate: row[1],
                 dayOfWeek: parseInt(row[2]),
                 folderPrefix: row[3]
             }
@@ -29,17 +30,16 @@ class Snackholder extends React.Component {
 
 
     render() {
-        return (<div>{
-            this.state.snackLists.map((row) => {
-                return (<Snacktime 
-                    title={row['title']}
-                    startDate={row['startDate']} 
-                    columns={row['folderPrefix']+"/columns.txt"} 
-                    players={row['folderPrefix']+"/players.txt"} 
-                    mods={row['folderPrefix']+"/extras.txt"} 
-                    dayOfWeek={row['dayOfWeek']} />)
-            })
-        }</div>);
+        return (<div>
+            <div className='snackTime3'>{
+                this.state.snackLists.map((row) => {
+                return (<Snacktime3 
+                        folderPrefix={row.folderPrefix}
+                        title={row.title}
+                        startDate={row.startDate} 
+                        dayOfWeek={row.dayOfWeek} />)
+                })}</div>
+        </div>);
     }
 }
 
