@@ -1,0 +1,14 @@
+.container {
+    float:left;
+    margin-right:25px;
+    padding-right:10px;
+}
+.tableBox {
+    text-align: center;
+}
+#sodiepop {
+    width:15px;
+}
+#snackman {
+    width:15px;
+}
