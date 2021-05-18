@@ -1,2 +1,2 @@
-Brus|Drikke
-Snacks|Noe å bite i
+Brus|brus.png
+Snacks|snacks.png
