@@ -19,7 +19,7 @@ Disse mappene er de som refereres til med "Mappenavn" over. De inneholder alle 3
 
 #### columns.txt
 
-Denne inneholder overskriften (og alt-tekst) på hver kolonne i listen. 
+Denne inneholder overskriften (og alt-tekst) på hver kolonne i listen. Vi kan ha et vilkårlig antall kolonner. 
 
 #### players.txt
 
