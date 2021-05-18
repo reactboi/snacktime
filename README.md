@@ -27,4 +27,4 @@ Denne inneholder liste over spillerne, samt datoen de startet, samt mulig sluttd
 
 #### extras.txt
 
-Denne brukes ikke til noe. Ideelt skal man kunne skippe dager, eller legge til ekstra her, men the spaghetti will not permit. 
+Denne brukes ikke til å skippe eller legge til ekstra dager. 
