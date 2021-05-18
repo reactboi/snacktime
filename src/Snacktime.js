@@ -6,7 +6,7 @@ import './Snacktime.css';
 import { fetchAndSplit } from './Fetcher';
 
 // TODO: Vi trenger "Skip datoer" og muligens "ekstra datoer"
-class Snacktime2 extends React.Component {
+class Snacktime extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -239,4 +239,4 @@ class Snacktime2 extends React.Component {
     }
 }
 
-export default Snacktime2;
+export default Snacktime;
