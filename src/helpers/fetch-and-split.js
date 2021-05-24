@@ -1,6 +1,6 @@
 export const fetchAndSplit = async (url, predicate = r => r.includes('|')) => {
     const dataList = [];
-    await fetch(url, {cache: "no-cache"})
+    await fetch(`config/${url}`, {cache: "no-cache"})
     .then(r => r.text())
     .then(result => {
         result = result.replace('\r', '');

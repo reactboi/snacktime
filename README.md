@@ -41,7 +41,7 @@ Mat
 
 #### players.txt
 
-Denne inneholder liste over spillerne, samt datoen de startet, samt mulig sluttdato. Sluttdato er valgfri. Om noen midlertidig går ut av spillet, skal de settes inn med sluttdato og settes inn på nytt når de starter opp igjen (de kan settes inn på samme posisjon). ALDRI fjern en rad om ikke sluttdato er under datoen kalenderen startet på. Hvis noen ønsker å fjerne sporene sine helt, kan navn endres på raden(e) deres.
+Denne inneholder liste over spillerne, samt datoen de startet, samt mulig sluttdato. Sluttdato er valgfri. Om noen midlertidig går ut av spillet, skal de settes inn med sluttdato og settes inn på nytt når de starter opp igjen (de kan settes inn på samme posisjon i listen om ønskelig). ALDRI fjern en rad om ikke sluttdato er under datoen kalenderen startet på. Hvis noen ønsker å fjerne sporene sine helt, kan navn endres på raden(e) deres.
 
 ```
 Fred|2020-01-01
@@ -52,8 +52,10 @@ Ronny|2020-02-01
 
 #### extras.txt
 
-Denne brukes ikke til å skippe eller legge til ekstra dager. Format Dato|[skip eller extra]
+Denne brukes til å skippe eller legge til ekstra dager. Format Dato|("skip" eller "extra")
 ```
 2021-01-10|skip
 2021-01-12|extra
 ```
+
+Øverste her vil skippe 10.1.2021 kun dersom det er en spilledag. Nederste vil legge til 12.1.2021 som en ekstra spilledag uavhengig av om det allerede er en spilledag, så du kan ende opp med 2 spillinger på samme dag.  

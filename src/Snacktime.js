@@ -53,7 +53,7 @@ export const Snacktime = (props) => {
             setPlayers(playerList);
             
             const columnsRaw = await fetchAndSplit(`${props.folderPrefix}/columns.txt`, c => c.length !== 0 && !c.match(/^[\s|\t]+$/));
-            
+            console.log(columnsRaw);
             setColumns(columnsRaw.map(([name, icon]) => icon === undefined ? [name, 'default.svg'] : [name, icon]));
             
             const extrasRaw = await fetchAndSplit(`${props.folderPrefix}/extras.txt`);
