@@ -1,242 +1,184 @@
-import React from 'react';
-
-import check from './check.svg';
-
-import './Snacktime.css';
+import React, { useEffect, useState } from 'react';
 import { fetchAndSplit } from './helpers/fetch-and-split';
+import { compareExtras } from './helpers/compare-extras';
+import { generateDefaultPlaydays } from './helpers/generate-default-playdays';
+import { formatDate } from './helpers/format-date';
+import { addExtrasToDefaultDates } from './helpers/add-extras-to-default-dates';
+import { joinNamesAndDates } from './helpers/join-names-and-dates';
+import { isPlayerInTheGame } from './helpers/is-player-in-the-game';
+import { numberToWeekDay } from './helpers/number-to-weekday';
+import { findNextSession } from './helpers/find-next-session';
+import { getRotatingIndex } from './helpers/get-rotating-index';
+import { getNextValidPlayerForDate } from './helpers/get-next-valid-player-for-date';
 
-// TODO: Vi trenger "Skip datoer" og muligens "ekstra datoer"
-class Snacktime extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            players: [],
-            todayDate: new Date(),
-            endDate: new Date("2022-01-01"),
-            order: [],
-            columns: []
-        }
-    }
+export const Snacktime = (props) => {
 
+    const todayDate = new Date();
+    const startDate = new Date(props.startDate);
+    const endDate = new Date(props.startDate); 
+    endDate.setDate(startDate.getDate()+1500);
 
-    // Her henter vi listen over spillere, og lager rekkefølgen. 
-    componentDidMount() {
-        this.fetchPlayers();
-        this.fetchColumns();
-    }
+    const [players, setPlayers] = useState([]);
+    const [order, setOrder] = useState([]);
+    const [orderIndex, setOrderIndex] = useState(0);
+    const [extras, setExtras] = useState([]);
+    const [columns, setColumns] = useState([]);
+    const [defaultDates, setDefaultDates] = useState([]);
+    const [nextPlayday, setNextPlayday] = useState(new Date('1970-01-01'));
+    const [purchasers, setPurchasers] = useState([]);
 
-    async fetchPlayers() {
-        const playerListRaw = await fetchAndSplit(this.props.players, p => p.includes("|"));
+    useEffect(() => {    
+        setDefaultDates(generateDefaultPlaydays(startDate, endDate, props.dayOfWeek));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    useEffect(() => {
+        (async () => {
+            const playerListRaw = await fetchAndSplit(`${props.folderPrefix}/players.txt`);
             
-        const playerList = [];
-        playerListRaw.forEach(playerRaw => {
-            const player = [];
-            player.push(playerRaw[0]);
-            player.push(new Date(playerRaw[1]));
+            const playerList = [];
+            playerListRaw.forEach(playerRaw => {
+                const player = [];
+                player.push(playerRaw[0]);
+                player.push(new Date(playerRaw[1]));
+    
+                if(playerRaw.length === 3) {
+                    player.push(new Date(playerRaw[2]));
+                }
+                else {
+                    player.push(new Date("2300-12-31"));
+                }
+                playerList.push(player);
+            });
+            setPlayers(playerList);
+            
+            const columnsRaw = await fetchAndSplit(`${props.folderPrefix}/columns.txt`, c => c.length !== 0 && !c.match(/^[\s|\t]+$/));
+            
+            setColumns(columnsRaw.map(([name, icon]) => icon === undefined ? [name, 'default.svg'] : [name, icon]));
+            
+            const extrasRaw = await fetchAndSplit(`${props.folderPrefix}/extras.txt`);
 
-            if(playerRaw.length === 3) {
-                player.push(new Date(playerRaw[2]));
-            }
-            else {
-                player.push(new Date("2300-12-31"));
-            }
-            playerList.push(player);
-        });
-        this.setState({ 
-            players: playerList,
-            order: this.generateWhoseTurnItIs(playerList)
-        });
-    }
+            setExtras(extrasRaw
+                .map(([date, which]) => [new Date(date), compareExtras(which)])
+                .filter(([, which]) => (which === 'skip' || which === 'extra')));
+        // End of async-hack
+        })(); 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
-    async fetchColumns() {
-        const columns = await fetchAndSplit(this.props.columns, c => c.length !== 0 && c.length !== 1);
-        this.setState({ columns: columns.map(([one, two]) => one) });
-    }
+    useEffect(() => {
+        const finalDates = addExtrasToDefaultDates(defaultDates, extras);
+        setOrder(joinNamesAndDates(players, finalDates));
+    }, [defaultDates, extras, players]);
 
-    generateWhoseTurnItIs(playerList) {
-        const startDate = this.getNextPlayday(new Date(this.props.startDate));
-        const endDate = new Date(this.state.endDate);
-
-        const allPlayers = [...playerList];
-        
-        const orderBuying = [];
-        // Må vente på at spillere rekker å lastes inn. Det er sannsynligvis en bedre metode. 
-        if(allPlayers.length === 0) {
+    useEffect(() => {
+        if(todayDate.getTime() < startDate.getTime() || order.length === 0) {
             return;
         }
 
-        // Her looper vi fra startDato til sluttDato. Disse er definert, og ikke bare et år, så vi slipper å bruke ukenummer eller oppdatere hvert nyår. 
-        const loopDate = new Date(startDate);
-        let playerIndex = 0;
-        while(loopDate.getTime() < endDate.getTime()) {
-            let update = false;
-            const currentPlayer = allPlayers[playerIndex];
-            if(this.isPlayerInTheGame(currentPlayer, loopDate)) {
-                orderBuying.push([new Date(loopDate), playerIndex]);
-                update = true;
-            } 
+        setCurrentSession();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [order]);
 
-            if(playerIndex === allPlayers.length -1) {
-                playerIndex = 0;
-            } else {
-                playerIndex++;
-            }
-
-            // Vi lar den kun gå videre til neste dato når den har funnet en gyldig id.  
-            if(update) {
-                loopDate.setDate(loopDate.getDate()+7);
-            }
-        }
-        return orderBuying;
-    }
-
-    whoseTurn(inputDate) {
-        const date = this.getNextPlayday(inputDate);
-
-        // Igjen med denne "vente"-greia
-        if(this.state.order.length === 0) {
-            return null;
-        }
-        
-        // Her må vi konvertere datoen til et sammenlignbart format. Vi kan ikke bruke getTime() når vi ikke er sikre på at tiden blir rett. Muligens en bedre måte her også 
-        return this.state.order.filter(current => this.formatDate(date) === this.formatDate(current[0]))[0];
-    }
-
-    getNextPlayday(inputDate) {
-        const date = new Date(inputDate);
-        const dayOfWeek = parseInt(this.props.dayOfWeek);
-
-        if(dayOfWeek > 6) {
-            throw RangeError("Day of week not valid!");
-        }
-
-        while (true) {
-            if (date.getDay() === dayOfWeek) {
-                return date;
-            }
-            date.setDate(date.getDate() + 1)
-        }
-    }
-
-    isPlayerInTheGame(player, currentDate) {
-        return player[1].getTime() < currentDate.getTime() && player[2].getTime() > currentDate.getTime();
-    }
-
-    // Knappene
-    changeDate(days) {
-        const modNumber = days < 0 ? -1 : 1;
-        const currentDate = new Date(this.state.todayDate);
-
-        const playDate = this.getNextPlayday(currentDate);
-        
-
-        while(true) {
-            currentDate.setDate(currentDate.getDate() + modNumber);
-            if(this.getNextPlayday(currentDate).getDate() !== playDate.getDate()) {
-                break;
-            }
-        }
-
-        if(currentDate.getTime() > this.state.endDate.getTime() || currentDate.getTime() < this.props.startDate.getTime()) {
-            const word = days < 0 ? "tilbake" : "fram";
-            alert("Må du virkelig så langt "+word+" i snackkalenderen?")
+    useEffect(() => {
+        if(columns.length === 0 || players.length === 0 || order.length === 0) {
             return;
         }
-        this.setState({
-            todayDate: currentDate,
-        });
-    }
 
-    // Knappen
-    resetDate() {
-        this.setState({
-            todayDate: new Date(),
-        });
-    }
-
-    formatDate(det) {
-        return det.getDate() + "." + (det.getMonth()+1) + "." + det.getFullYear();
-    }
-
-    numberToWeekDay(number) {
-        switch(number) {
-            case 0:
-                return "søndag";
-            case 1:
-                return "mandag";
-            case 2:
-                return "tirsdag";
-            case 3:
-                return "onsdag";
-            case 4: 
-                return "torsdag";
-            case 5:
-                return "fredag";
-            case 6:
-                return "lørdag";
-            default:
-                return "denne ukedagen finnes ikke, morroklumpen";
+        const [firstPurchaser, date] = order[orderIndex];
+        const purchaserList = [[columns[0][0], firstPurchaser]];
+        
+        const columnsExceptFirst = columns.slice(1);
+        
+        let nextPurchaser = getRotatingIndex(firstPurchaser, players.length);
+        for(let [c,] of columnsExceptFirst) {
+            nextPurchaser = getNextValidPlayerForDate(
+                date,
+                nextPurchaser,
+                players);
+            purchaserList.push([c, nextPurchaser]);
+            nextPurchaser = getRotatingIndex(nextPurchaser, players.length);
         }
+
+        setPurchasers(purchaserList);
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [orderIndex, columns, players])
+
+    const updateOrderIndex = (movement) => {
+        const final = orderIndex+movement;
+
+        if(final < 0 || final >= order.length) {
+            alert('Du har nådd enten begynnelsen eller slutten av listen!');
+            return;
+        }
+        setOrderIndex(final);
+        setNextPlayday(order[final][1]);
     }
 
-    // Vi kan ha et vilkårlig antall kolonner. Spilleren vi har kalkulert oss fram til får ansvar for kolonne 1. Neste får 2, etc. 
-    generatePlayerIdsForColumnCount(columnCount, id, date) {
-        if(id === null) {
-            return [];
-        }
-        const currentMainBuyer = this.state.players[id];
-        const currentPlayers = this.state.players.filter(player => this.isPlayerInTheGame(player, date));
+    const setCurrentSession = () => {
+        const nextSesh = findNextSession(todayDate, order);
+        setOrderIndex(nextSesh)
+        setNextPlayday(order[nextSesh][1]);
+    };
 
-        currentPlayers.forEach((p, i) => {
-            if(p === currentMainBuyer) {
-                id = i;
-                return;
-            }
-        });
-        const arr = [];
-        for(let i=0;i<columnCount;i++) {
-            if(id > currentPlayers.length -1) {
-                id = 0;
-            }
-            arr.push(currentPlayers[id][0]);
-            id++;
+    const renderMethod = () => {    
+        let header = <h2>{props.title}</h2>    
+        // Ikke rukket å hente data.
+        if(order.length === 0) {
+            return (<div>
+                {header}
+                <div>Laster inn kalender</div>
+            </div>)
         }
-        return arr;
-    }
+        
+        // Kalenderen er over sluttdato.
+        if(todayDate.getTime() > endDate.getTime()) {
+            return (<div>
+                {header}    
+                <div>Kalenderen <strong>{props.title}</strong> har gått ut! Vennligst sett en ny dato</div>
+            </div>);
+        }
 
-    render() {
-        const mainPlayer = this.whoseTurn(this.state.todayDate);
-        const poorUnfortunateSouls = this.generatePlayerIdsForColumnCount(this.state.columns.length, mainPlayer === null ? null : mainPlayer[1], this.state.todayDate);
-        return (
-            <div className="container">
-                <h2>{this.props.title}</h2>
-                <div>Tabell for {this.numberToWeekDay(this.getNextPlayday(this.state.todayDate).getDay())} {this.formatDate(this.getNextPlayday(this.state.todayDate))}</div>
+        if(todayDate.getTime() < startDate.getTime()) {
+            return (<div>
+                {header}
+                <div>Kalenderen har ikke begynt ennå! Sett en tidligere startdato eller vent til den {formatDate(startDate)}</div>
+            </div>)
+        }
+        
+        // Tabell er klar
+        return (<div className="container">
+                <h2>{props.title}</h2>
+                <div>Tabell for {numberToWeekDay(nextPlayday.getDay())} {formatDate(nextPlayday)}</div>
                 <div>
-                    <button onClick={() => this.changeDate(-7)}>Forrige</button>
-                    <button onClick={() => this.resetDate()}>Nærmeste</button>
-                    <button onClick={() => this.changeDate(7)}>Neste</button>
+                    <button onClick={() => updateOrderIndex(-1)}>Forrige</button>
+                    <button onClick={() => setCurrentSession()}>Nærmeste</button>
+                    <button onClick={() => updateOrderIndex(1)}>Neste</button>
                 </div>
                 <table id="snacktable" border="1">
-                    <th>Navn</th>
-                    {this.state.columns.map(col => {
-                        return (<th>{col}</th>)
+                    <th>#</th>
+                    {columns.map(([col,index]) => {
+                        return (<th key={index}>{col}</th>)
                     })}
-                    {this.state.players.map(player => {
-                        if(!this.isPlayerInTheGame(player, this.state.todayDate)) {
+                    {players.map((player, index) => {
+                        if(!isPlayerInTheGame(player, order[orderIndex][1])) {
                             return null;
                         }
-                        return (<tr>
+                        return (<tr key={player[0]}>
                             <td>{player[0]}</td>
-                            {this.state.columns.map((col, index) => {
-                                const cross = poorUnfortunateSouls[index] === player[0] ? <img id="sodiepop" src={check} alt="the one who has to do it"/> : "";
-                                return (<td>{cross}</td>)
+                            {columns.map(([col,icon]) => {
+                                let fill = <img src='/images/none.png' alt='no man' className='iconContainer' />;
+                                if(purchasers.find((p) => p[1] === index && col === p[0])) {
+                                    fill = <img src={`/images/${icon}`} alt={col} className='iconContainer' />;
+                                }
+                                return (<td key={col}>{fill}</td>)
                             })}
                         </tr>)
                     })}
                 </table>
-            </div>
-        );
-    }
-}
+        </div>);
+    };
 
-export default Snacktime;
+    return renderMethod();
+};

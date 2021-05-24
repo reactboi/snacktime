@@ -1,10 +1,9 @@
 import React from 'react';
 
-import Snacktime from './Snacktime';
 
 import './Snacktime.css';
 import { fetchAndSplit } from './helpers/fetch-and-split';
-import { Snacktime3 } from './Snacktime3';
+import { Snacktime } from './Snacktime';
 
 class Snackholder extends React.Component {
     constructor(props) {
@@ -15,7 +14,7 @@ class Snackholder extends React.Component {
     }
 
     async componentDidMount() {
-        const splitted = await fetchAndSplit("listIndex.txt", r => r.includes("|"));
+        const splitted = await fetchAndSplit("listIndex.txt");
         const indexList = splitted.map(row => {
             return {
                 title: row[0],
@@ -33,7 +32,7 @@ class Snackholder extends React.Component {
         return (<div>
             <div className='snackTime3'>{
                 this.state.snackLists.map((row) => {
-                return (<Snacktime3 
+                return (<Snacktime 
                         folderPrefix={row.folderPrefix}
                         title={row.title}
                         startDate={row.startDate} 
