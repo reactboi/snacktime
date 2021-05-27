@@ -1,5 +1,7 @@
+import { createDateFromString } from "./create-date-from-string";
+
 export const generateDefaultPlaydays = (fromDate, toDate, dayOfWeek) => {
-    const date = new Date(fromDate);
+    const date = createDateFromString(fromDate);
 
     if(dayOfWeek > 6) {
         throw RangeError("Day of week not valid!");
@@ -12,7 +14,7 @@ export const generateDefaultPlaydays = (fromDate, toDate, dayOfWeek) => {
 
     const dates = [];
     while(date.getTime() < toDate.getTime()) {
-        dates.push(new Date(date));
+        dates.push(createDateFromString(date));
         date.setDate(date.getDate() + 7);
     }
 

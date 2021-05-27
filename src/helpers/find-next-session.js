@@ -1,7 +1,8 @@
+import { createDateFromString } from "./create-date-from-string";
 import { formatDate } from "./format-date";
 
     export const findNextSession = (fromDate, order) => {
-        let previousDate = new Date('1970-01-01');
+        let previousDate = createDateFromString('1970-01-01');
             
         for(let i=0;i<order.length;i++) {
             let [,date] = order[i];
@@ -12,7 +13,7 @@ import { formatDate } from "./format-date";
             if(fromDate.getTime() > previousDate.getTime() && fromDate.getTime() < date.getTime()) {
                 return i;
             }
-            previousDate = new Date(date);
+            previousDate = createDateFromString(date);
         }
         return null;
     };

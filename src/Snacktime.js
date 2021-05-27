@@ -10,12 +10,13 @@ import { numberToWeekDay } from './helpers/number-to-weekday';
 import { findNextSession } from './helpers/find-next-session';
 import { getRotatingIndex } from './helpers/get-rotating-index';
 import { getNextValidPlayerForDate } from './helpers/get-next-valid-player-for-date';
+import { createDateFromString } from './helpers/create-date-from-string';
 
 export const Snacktime = (props) => {
 
     const todayDate = new Date();
-    const startDate = new Date(props.startDate);
-    const endDate = new Date(props.startDate); 
+    const startDate = createDateFromString(props.startDate);
+    const endDate = createDateFromString(props.startDate); 
     endDate.setDate(startDate.getDate()+1500);
 
     const [players, setPlayers] = useState([]);
@@ -24,11 +25,12 @@ export const Snacktime = (props) => {
     const [extras, setExtras] = useState([]);
     const [columns, setColumns] = useState([]);
     const [defaultDates, setDefaultDates] = useState([]);
-    const [nextPlayday, setNextPlayday] = useState(new Date('1970-01-01'));
+    const [nextPlayday, setNextPlayday] = useState(createDateFromString('1970-01-01'));
     const [purchasers, setPurchasers] = useState([]);
 
     useEffect(() => {    
         setDefaultDates(generateDefaultPlaydays(startDate, endDate, props.dayOfWeek));
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -39,27 +41,29 @@ export const Snacktime = (props) => {
             const playerList = [];
             playerListRaw.forEach(playerRaw => {
                 const player = [];
+                console.log(playerRaw);
                 player.push(playerRaw[0]);
-                player.push(new Date(playerRaw[1]));
+                player.push(createDateFromString(playerRaw[1]));
     
                 if(playerRaw.length === 3) {
-                    player.push(new Date(playerRaw[2]));
+                    player.push(createDateFromString(playerRaw[2]));
                 }
                 else {
-                    player.push(new Date("2300-12-31"));
+                    player.push(createDateFromString("2300-12-31"));
                 }
                 playerList.push(player);
             });
+            console.log(playerList);
             setPlayers(playerList);
             
             const columnsRaw = await fetchAndSplit(`${props.folderPrefix}/columns.txt`, c => c.length !== 0 && !c.match(/^[\s|\t]+$/));
-            console.log(columnsRaw);
+
             setColumns(columnsRaw.map(([name, icon]) => icon === undefined ? [name, 'default.svg'] : [name, icon]));
             
             const extrasRaw = await fetchAndSplit(`${props.folderPrefix}/extras.txt`);
 
             setExtras(extrasRaw
-                .map(([date, which]) => [new Date(date), compareExtras(which)])
+                .map(([date, which]) => [createDateFromString(date), compareExtras(which)])
                 .filter(([, which]) => (which === 'skip' || which === 'extra')));
         // End of async-hack
         })(); 

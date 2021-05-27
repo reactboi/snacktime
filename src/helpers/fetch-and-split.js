@@ -3,8 +3,8 @@ export const fetchAndSplit = async (url, predicate = r => r.includes('|')) => {
     await fetch(`config/${url}`, {cache: "no-cache"})
     .then(r => r.text())
     .then(result => {
-        result = result.replace('\r', '');
-        const rawData = result.split("\n");
+        const rawData = result.split(/\r?\n/);
+        console.log(rawData);
         rawData
         .filter((row) => !row.startsWith('#'))
         .filter(predicate)

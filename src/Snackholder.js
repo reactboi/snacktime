@@ -26,8 +26,7 @@ class Snackholder extends React.Component {
         this.setState({ snackLists: indexList });
         
     }
-
-
+    
     render() {
         return (<div>
             <div className='snackTime3'>{
