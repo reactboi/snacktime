@@ -41,7 +41,6 @@ export const Snacktime = (props) => {
             const playerList = [];
             playerListRaw.forEach(playerRaw => {
                 const player = [];
-                console.log(playerRaw);
                 player.push(playerRaw[0]);
                 player.push(createDateFromString(playerRaw[1]));
     
@@ -53,7 +52,6 @@ export const Snacktime = (props) => {
                 }
                 playerList.push(player);
             });
-            console.log(playerList);
             setPlayers(playerList);
             
             const columnsRaw = await fetchAndSplit(`${props.folderPrefix}/columns.txt`, c => c.length !== 0 && !c.match(/^[\s|\t]+$/));

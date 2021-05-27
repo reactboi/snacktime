@@ -4,7 +4,6 @@ export const fetchAndSplit = async (url, predicate = r => r.includes('|')) => {
     .then(r => r.text())
     .then(result => {
         const rawData = result.split(/\r?\n/);
-        console.log(rawData);
         rawData
         .filter((row) => !row.startsWith('#'))
         .filter(predicate)
