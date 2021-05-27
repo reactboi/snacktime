@@ -158,27 +158,31 @@ export const Snacktime = (props) => {
                     <button onClick={() => setCurrentSession()}>Nærmeste</button>
                     <button onClick={() => updateOrderIndex(1)}>Neste</button>
                 </div>
-                <table id="snacktable" border="1">
-                    <th>#</th>
-                    {columns.map(([col,index]) => {
-                        return (<th key={index}>{col}</th>)
-                    })}
+                <div className='tableContainer' id="snacktable">
+                    <div className='columnContainer'>
+                        <div className='rowContainer titleBox'></div>
+                        {columns.map(([col,index]) => {
+                            return (
+                                <div className='rowContainer titleBox' key={index}>{col}</div>
+                            )
+                        })}
+                    </div>
                     {players.map((player, index) => {
                         if(!isPlayerInTheGame(player, order[orderIndex][1])) {
                             return null;
                         }
-                        return (<tr key={player[0]}>
-                            <td>{player[0]}</td>
+                        return (<div className='columnContainer' key={player[0]}>
+                            <div className='rowContainer'>{player[0]}</div>
                             {columns.map(([col,icon]) => {
-                                let fill = <img src='/images/none.png' alt='no man' className='iconContainer' />;
+                                let fill = <div></div>;
                                 if(purchasers.find((p) => p[1] === index && col === p[0])) {
-                                    fill = <img src={`/images/${icon}`} alt={col} className='iconContainer' />;
+                                    fill = <div><img src={`/images/${icon}`} alt={col} className='iconImage' /></div>;
                                 }
-                                return (<td key={col}>{fill}</td>)
+                                return (<div className='rowContainer' key={col}>{fill}</div>)
                             })}
-                        </tr>)
+                        </div>)
                     })}
-                </table>
+                </div>
         </div>);
     };
 

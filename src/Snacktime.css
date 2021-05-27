@@ -1,13 +1,29 @@
-td {
-    min-width:75px;
-}
 .container {
     float:left;
     margin-right:25px;
     padding-right:10px;
-    font-size:135%;
+    font-size:100%;
 }
-.iconContainer {
+.tableContainer {
+    display:flex;
+    flex-direction:column;
+}
+.columnContainer {
+    width:300px;
+    height:50px;
+    display:flex;
+    flex-direction:row;
+    border-bottom: solid 1px;
+}
+.rowContainer {
+    width:100%;
+    display: flex;
+    align-items: center;
+}
+.iconImage {
     width:35px;
     height:35px;
+}
+.titleBox {
+    font-weight:bold;
 }
