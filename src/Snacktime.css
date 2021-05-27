@@ -7,22 +7,7 @@ td {
     padding-right:10px;
     font-size:135%;
 }
-.tableBox {
-    text-align: center;
-}
 .iconContainer {
     width:35px;
     height:35px;
-}
-.snackTime3 {
-    clear:both;
-    margin-top:20px;
-    padding-top:20px;
-}
-
-#sodiepop {
-    width:15px;
-}
-#snackman {
-    width:15px;
 }
